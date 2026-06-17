@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Manutenzione Clima - Ticino</title>
+
+<style>
+body{
+  font-family: Arial;
+  margin:0;
+  background: linear-gradient(135deg,#eaf6ff,#ffffff);
+  color:#0b2a3d;
+}
+
+header{
+  background:#0b4c6b;
+  color:white;
+  padding:35px;
+  text-align:center;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 5px 18px rgba(0,0,0,0.08);
+  margin-bottom:15px;
+}
+
+input,select,textarea,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #d0dbe5;
+}
+
+button{
+  background:#0b4c6b;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#08384f;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.slot{
+  padding:12px;
+  background:#d9f1ff;
+  text-align:center;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.slot.taken{
+  background:#ffd6d6;
+  cursor:not-allowed;
+}
+
+.slot.selected{
+  background:#0b4c6b;
+  color:white;
+}
+
+.adminBox{
+  background:#0b4c6b;
+  color:white;
+  padding:10px;
+  border-radius:10px;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>❄️ Manutenzione Clima</h1>
+  <p>Servizio HVAC professionale - Ticino 🇨🇭</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+  <h3>Servizio clienti</h3>
+
+  <input type="text" id="name" placeholder="Nome / Name">
+  <input type="tel" id="phone" placeholder="Telefono / Telefon">
+
+  <select id="service">
+    <option value="Diagnostico">Diagnostico / Diagnose</option>
+    <option value="Manutenzione">Manutenzione / Wartung</option>
+    <option value="Pulizia">Pulizia / Reinigung</option>
+  </select>
+
+  <textarea id="desc" maxlength="100" placeholder="Descrizione breve (max 100)"></textarea>
+
+  <input type="number" id="equip" placeholder="Numero apparecchi / Geräte">
+
+  <input type="date" id="date">
+
+  <div class="grid" id="slots"></div>
+
+  <button onclick="save()">Conferma Prenotazione</button>
+</div>
+
+<div class="card">
+  <h3>Admin Panel</h3>
+  <div id="list"></div>
+</div>
+
+</div>
+
+<script>
+let bookings = JSON.parse(localStorage.getItem("mc_advanced") || "[]");
+
+const hours = ["08:00","10:00","12:00","14:00","16:00","18:00"];
+
+date.valueAsDate = new Date();
+
+date.onchange = render;
+
+function render(){
+  slots.innerHTML = "";
+
+  hours.forEach(h=>{
+    let taken = bookings.find(b => b.date === date.value && b.time === h);
+
+    let d = document.createElement("div");
+    d.className = "slot" + (taken ? " taken" : "");
+    d.innerText = h;
+
+    if(!taken){
+      d.onclick = () => {
+        document.querySelectorAll(".slot").forEach(s=>s.classList.remove("selected"));
+        d.classList.add("selected");
+      }
+    }
+
+    slots.appendChild(d);
+  });
+
+  renderAdmin();
+}
+
+function save(){
+  let selected = document.querySelector(".slot.selected");
+  if(!selected) return alert("Select time");
+
+  bookings.push({
+    name:name.value,
+    phone:phone.value,
+    service:service.value,
+    desc:desc.value,
+    equip:equip.value,
+    date:date.value,
+    time:selected.innerText
+  });
+
+  localStorage.setItem("mc_advanced", JSON.stringify(bookings));
+
+  render();
+}
+
+function renderAdmin(){
+  list.innerHTML = "";
+
+  bookings.forEach(b=>{
+    let div = document.createElement("div");
+    div.className = "adminBox";
+    div.innerText =
+      `${b.date} ${b.time} | ${b.service} | ${b.name} | ${b.equip} units`;
+    list.appendChild(div);
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
